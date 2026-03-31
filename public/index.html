@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DailyBite.fit — Your Daily Companion for a Healthier Life</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #333;
+    }
+
+    /* ===== NAVBAR ===== */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(45, 122, 58, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+
+    nav .logo {
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    nav .nav-links a {
+      color: #c8e6c9;
+      text-decoration: none;
+      margin-left: 30px;
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav .nav-links a:hover {
+      color: #fff;
+    }
+
+    nav .nav-links .nav-btn {
+      background: #fff;
+      color: #2d7a3a;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a5c2a 0%, #2d7a3a 50%, #43a047 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 20px 80px;
+    }
+
+    .hero h1 {
+      color: #fff;
+      font-size: 52px;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .hero h1 span {
+      color: #a5d6a7;
+    }
+
+    .hero p {
+      color: #c8e6c9;
+      font-size: 20px;
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+
+    .hero-btn {
+      display: inline-block;
+      padding: 16px 40px;
+      background: #fff;
+      color: #2d7a3a;
+      font-size: 17px;
+      font-weight: 700;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .hero-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    /* ===== FEATURES ===== */
+    .features {
+      padding: 100px 20px;
+      background: #fff;
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: 36px;
+      color: #2d7a3a;
+      margin-bottom: 16px;
+    }
+
+    .features .subtitle {
+      text-align: center;
+      font-size: 17px;
+      color: #666;
+      margin-bottom: 60px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: #f5f9f5;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .feature-card .icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      color: #2d7a3a;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* ===== LEARN MORE ===== */
+    .learn-more {
+      padding: 100px 20px;
+      background: #f5f9f5;
+    }
+
+    .learn-more h2 {
+      text-align: center;
+      font-size: 36px;
+      color: #2d7a3a;
+      margin-bottom: 16px;
+    }
+
+    .learn-more .subtitle {
+      text-align: center;
+      font-size: 17px;
+      color: #666;
+      margin-bottom: 60px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .learn-more-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .learn-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .learn-item .number {
+      flex-shrink: 0;
+      width: 50px;
+      height: 50px;
+      background: #2d7a3a;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .learn-item h3 {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .learn-item p {
+      font-size: 15px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .learn-cta {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .learn-cta a {
+      display: inline-block;
+      padding: 16px 40px;
+      background: #2d7a3a;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .learn-cta a:hover {
+      background: #1a5c2a;
+      transform: translateY(-2px);
+    }
+
+    /* ===== AUTH SECTION ===== */
+    .auth-section {
+      padding: 60px 16px;
+      background-color: #1a5c2a;
+      text-align: center;
+    }
+
+    .auth-section h2 {
+      color: #fff;
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    .auth-section .subtitle {
+      color: #c8e6c9;
+      font-size: 16px;
+      margin-bottom: 30px;
+    }
+
+    .auth-container {
+      background-color: #fff;
+      border-radius: 12px;
+      max-width: 380px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+    }
+
+    .tabs {
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tabs::after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    .tab {
+      float: left;
+      width: 50%;
+      padding: 14px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #999;
+      background-color: #fafafa;
+      border: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .tab.active {
+      color: #2d7a3a;
+      background-color: #fff;
+      border-bottom: 3px solid #2d7a3a;
+    }
+
+    .form-container { padding: 24px; }
+
+    .form { display: none; }
+    .form.active { display: block; }
+
+    .input-group { margin-bottom: 18px; }
+
+    .input-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-group input {
+      display: block;
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      -webkit-appearance: none;
+      appearance: none;
+      background-color: #fff;
+    }
+
+    .input-group input:focus {
+      border-color: #2d7a3a;
+      outline: none;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background-color: #2d7a3a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .btn:disabled { background-color: #999; }
+
+    .message {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+
+    .message.success {
+      display: block;
+      background: #e8f5e9;
+      color: #2d7a3a;
+      border: 1px solid #a5d6a7;
+    }
+
+    .message.error {
+      display: block;
+      background: #ffebee;
+      color: #c62828;
+      border: 1px solid #ef9a9a;
+    }
+
+    .switch-text {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-top: 20px;
+    }
+
+    .switch-text a {
+      color: #2d7a3a;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .switch-text a:hover { text-decoration: underline; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: #1a1a1a;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    footer p {
+      color: #999;
+      font-size: 14px;
+    }
+
+    footer .footer-links {
+      margin-top: 12px;
+    }
+
+    footer .footer-links a {
+      color: #a5d6a7;
+      text-decoration: none;
+      margin: 0 12px;
+      font-size: 13px;
+    }
+
+    footer .footer-links a:hover { color: #fff; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      nav {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      nav .logo { font-size: 18px; }
+
+      nav .nav-links {
+        display: flex;
+        gap: 12px;
+      }
+
+      nav .nav-links a {
+        margin-left: 0;
+        font-size: 13px;
+      }
+
+      .hero { padding: 100px 20px 60px; min-height: auto; }
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+
+      .features { padding: 60px 16px; }
+      .features h2 { font-size: 28px; }
+      .features-grid { grid-template-columns: 1fr; max-width: 400px; }
+
+      .learn-more { padding: 60px 16px; }
+      .learn-more h2 { font-size: 28px; }
+      .learn-item { flex-direction: column; align-items: center; text-align: center; }
+
+      .auth-section { padding: 40px 10px; }
+      .auth-section h2 { font-size: 22px; }
+      .auth-container { max-width: 100%; }
+      .form-container { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="#" class="logo">DailyBite.fit</a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#learn-more">Learn More</a>
+      <a href="#get-started" class="nav-btn">Sign Up</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div>
+      <h1>Eat Smarter.<br><span>Live Better.</span></h1>
+      <p>DailyBite.fit is your AI-powered nutrition companion. Scan your plate, track your meals, and get personalized guidance — one bite at a time.</p>
+      <a href="#learn-more" class="hero-btn">Learn More</a>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <h2>What You Get</h2>
+    <p class="subtitle">Everything you need to take control of your nutrition and fitness journey.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="icon">&#128248;</div>
+        <h3>Scan Your Plate</h3>
+        <p>Snap a photo of your meal and our AI instantly identifies the food, estimates portions, and calculates the full nutritional breakdown.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#127822;</div>
+        <h3>Personalized Meal Plans</h3>
+        <p>Get daily meal recommendations tailored to your dietary preferences, allergies, and fitness goals.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128202;</div>
+        <h3>Nutrition Tracking</h3>
+        <p>Log your meals and track calories, macros, and micronutrients with ease.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#127947;&#65039;</div>
+        <h3>Fitness Integration</h3>
+        <p>Sync your workouts and activity to get nutrition advice that matches your energy output.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128161;</div>
+        <h3>Daily Bites</h3>
+        <p>Receive quick, science-backed health tips every day to keep you informed and motivated.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128200;</div>
+        <h3>Progress Reports</h3>
+        <p>Track your journey with weekly and monthly reports that show how far you've come.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Learn More -->
+  <section class="learn-more" id="learn-more">
+    <h2>How It Works</h2>
+    <p class="subtitle">Getting started with DailyBite.fit is simple. Here's how it works.</p>
+    <div class="learn-more-content">
+      <div class="learn-item">
+        <div class="number">1</div>
+        <div>
+          <h3>Create Your Account</h3>
+          <p>Sign up in seconds and tell us about your goals — whether it's weight loss, muscle gain, or simply eating healthier. We'll personalize everything for you.</p>
+        </div>
+      </div>
+      <div class="learn-item">
+        <div class="number">2</div>
+        <div>
+          <h3>Scan & Track Your Meals</h3>
+          <p>Use your phone camera to scan any meal. Our AI recognizes the food on your plate, calculates calories, protein, carbs, fats, and more — instantly. You can also log meals manually.</p>
+        </div>
+      </div>
+      <div class="learn-item">
+        <div class="number">3</div>
+        <div>
+          <h3>Get Personalized Guidance</h3>
+          <p>Based on your daily intake and goals, DailyBite.fit suggests what to eat next, alerts you if you're missing key nutrients, and adjusts your meal plan in real time.</p>
+        </div>
+      </div>
+      <div class="learn-item">
+        <div class="number">4</div>
+        <div>
+          <h3>See Your Progress</h3>
+          <p>Watch your habits transform with detailed weekly and monthly reports. Celebrate milestones, spot trends, and stay motivated on your journey to a healthier life.</p>
+        </div>
+      </div>
+    </div>
+    <div class="learn-cta">
+      <a href="#get-started">Get Started — It's Free</a>
+    </div>
+  </section>
+
+  <!-- Sign Up / Sign In -->
+  <div id="get-started" style="height:1px;"></div>
+  <section class="auth-section">
+    <h2>Join DailyBite.fit</h2>
+    <p class="subtitle">Create your free account and start your journey today.</p>
+    <div class="auth-container">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('signup')">Sign Up</button>
+        <button class="tab" onclick="switchTab('signin')">Sign In</button>
+      </div>
+      <div class="form-container">
+        <form class="form active" id="signup-form" onsubmit="handleSignup(event)">
+          <div class="input-group">
+            <label for="signup-name">Full Name</label>
+            <input type="text" id="signup-name" name="name" placeholder="Enter your name" autocomplete="name" required>
+          </div>
+          <div class="input-group">
+            <label for="signup-email">Email</label>
+            <input type="email" id="signup-email" name="email" placeholder="Enter your email" autocomplete="email" required>
+          </div>
+          <div class="input-group">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" name="password" placeholder="Create a password" autocomplete="new-password" minlength="6" required>
+          </div>
+          <button type="submit" class="btn" id="signup-btn">Create Account</button>
+          <div id="signup-message" class="message"></div>
+          <p class="switch-text">Already have an account? <a onclick="switchTab('signin')">Sign In</a></p>
+        </form>
+        <form class="form" id="signin-form" onsubmit="handleSignin(event)">
+          <div class="input-group">
+            <label for="signin-email">Email</label>
+            <input type="email" id="signin-email" name="email" placeholder="Enter your email" autocomplete="email" required>
+          </div>
+          <div class="input-group">
+            <label for="signin-password">Password</label>
+            <input type="password" id="signin-password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+          </div>
+          <button type="submit" class="btn" id="signin-btn">Sign In</button>
+          <div id="signin-message" class="message"></div>
+          <p class="switch-text">Don't have an account? <a onclick="switchTab('signup')">Sign Up</a></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 DailyBite.fit — All rights reserved.</p>
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#learn-more">How It Works</a>
+      <a href="#get-started">Get Started</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+    </div>
+  </footer>
+
+  <script>
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+
+      if (tab === 'signup') {
+        document.querySelectorAll('.tab')[0].classList.add('active');
+        document.getElementById('signup-form').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.getElementById('signin-form').classList.add('active');
+      }
+    }
+
+    function showMessage(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'message ' + type;
+    }
+
+    async function handleSignup(e) {
+      e.preventDefault();
+      const btn = document.getElementById('signup-btn');
+      btn.disabled = true;
+      btn.textContent = 'Creating Account...';
+
+      const name = document.getElementById('signup-name').value;
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          showMessage('signup-message', 'Account created! Check your email for a welcome message.', 'success');
+          document.getElementById('signup-form').reset();
+        } else {
+          showMessage('signup-message', data.error || 'Registration failed.', 'error');
+        }
+      } catch (err) {
+        showMessage('signup-message', 'Something went wrong. Please try again.', 'error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+    }
+
+    async function handleSignin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('signin-btn');
+      btn.disabled = true;
+      btn.textContent = 'Signing In...';
+
+      const email = document.getElementById('signin-email').value;
+      const password = document.getElementById('signin-password').value;
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          showMessage('signin-message', 'Login successful! Redirecting...', 'success');
+          localStorage.setItem('token', data.token);
+          // window.location.href = '/dashboard';
+        } else {
+          showMessage('signin-message', data.error || 'Login failed.', 'error');
+        }
+      } catch (err) {
+        showMessage('signin-message', 'Something went wrong. Please try again.', 'error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  </script>
+</body>
+</html>
