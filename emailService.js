@@ -1,10 +1,12 @@
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "mail.privateemail.com",
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
   },
 });
 
@@ -136,7 +138,7 @@ function getEmailHTML(name, lang = "en") {
           <p style="font-size: 11px; margin: 8px 0 0;">
             <a href="https://www.dailybite.fit" style="color: #1D9E75; text-decoration: none;">אתר</a>
             &nbsp;&middot;&nbsp;
-            <a href="mailto:${process.env.GMAIL_USER}?subject=Unsubscribe" style="color: #999; text-decoration: none;">ביטול הרשמה</a>
+            <a href="mailto:${process.env.EMAIL_USER}?subject=Unsubscribe" style="color: #999; text-decoration: none;">ביטול הרשמה</a>
           </p>
         </div>
       </div>
@@ -270,7 +272,7 @@ function getEmailHTML(name, lang = "en") {
         <p style="font-size: 11px; margin: 8px 0 0;">
           <a href="https://www.dailybite.fit" style="color: #1D9E75; text-decoration: none;">Website</a>
           &nbsp;&middot;&nbsp;
-          <a href="mailto:${process.env.GMAIL_USER}?subject=Unsubscribe" style="color: #999; text-decoration: none;">Unsubscribe</a>
+          <a href="mailto:${process.env.EMAIL_USER}?subject=Unsubscribe" style="color: #999; text-decoration: none;">Unsubscribe</a>
         </p>
       </div>
     </div>
@@ -284,7 +286,7 @@ async function sendWelcomeEmail(to, name, lang = "en") {
       : "Welcome to DailyBite — Let's get started!";
 
   const mailOptions = {
-    from: `"DailyBite" <${process.env.GMAIL_USER}>`,
+    from: `"DailyBite" <${process.env.EMAIL_USER}>`,
     to,
     subject,
     html: getEmailHTML(name, lang),
