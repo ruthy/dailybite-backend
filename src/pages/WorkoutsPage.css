@@ -1,0 +1,164 @@
+.workouts-page {
+  padding: 0 12px 24px;
+  background: #f0f4f0;
+}
+
+.workouts-page h1 {
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.wo-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.wo-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.wo-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.wo-stat-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: #2d7a3a;
+}
+
+.wo-stat-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.wo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wo-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-left: 4px solid #e0e0e0;
+  transition: all 0.2s;
+}
+
+.wo-card.completed {
+  border-left-color: #2d7a3a;
+  background: #f5f9f5;
+}
+
+.wo-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.wo-card-info {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.wo-focus-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.wo-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.wo-meta {
+  display: flex;
+  gap: 6px;
+  font-size: 13px;
+  color: #666;
+}
+
+.wo-dot {
+  color: #ccc;
+}
+
+.wo-check {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #fff;
+  flex-shrink: 0;
+  background: #fff;
+  transition: all 0.2s;
+}
+
+.wo-check.checked {
+  background: #2d7a3a;
+  border-color: #2d7a3a;
+}
+
+.wo-desc {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.wo-video-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #2d7a3a;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.wo-video-container {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wo-video-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  border-radius: 10px;
+}
+
+.wo-close-video {
+  padding: 10px;
+  background: #f0f0f0;
+  color: #555;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  font-family: inherit;
+  text-align: center;
+}

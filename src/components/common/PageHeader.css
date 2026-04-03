@@ -1,0 +1,30 @@
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--safe-top) + 10px) 12px 10px;
+  background: #2d7a3a;
+}
+
+.page-header-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  flex: 1;
+  text-align: center;
+}
+
+.page-back,
+.page-close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}

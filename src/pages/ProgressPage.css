@@ -1,0 +1,161 @@
+.progress-page {
+  padding: 0 12px 24px;
+  background: #f0f4f0;
+}
+
+.progress-page h1 {
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.prog-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.prog-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.prog-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 8px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.prog-stat-icon {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.prog-stat-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: #2d7a3a;
+}
+
+.prog-stat-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.prog-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+}
+
+.prog-card h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.weight-chart {
+  display: flex;
+  gap: 8px;
+  height: 120px;
+  margin-bottom: 8px;
+}
+
+.chart-labels {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #999;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.chart-bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.chart-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-bar {
+  width: 100%;
+  max-width: 20px;
+  background: linear-gradient(to top, #2d7a3a, #43a047);
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  transition: height 0.3s;
+}
+
+.chart-date {
+  font-size: 9px;
+  color: #999;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+.weight-change-text {
+  font-size: 14px;
+  color: #2d7a3a;
+  font-weight: 600;
+  text-align: center;
+}
+
+.prog-empty {
+  font-size: 14px;
+  color: #999;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.weight-input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.weight-input-row input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+  font-family: inherit;
+}
+
+.weight-input-row input:focus {
+  border-color: #2d7a3a;
+}
+
+.weight-log-btn {
+  padding: 12px 24px;
+  background: #2d7a3a;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.current-weight {
+  font-size: 13px;
+  color: #666;
+  margin-top: 8px;
+}

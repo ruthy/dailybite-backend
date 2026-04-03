@@ -1,4 +1,7 @@
 node_modules/
+dist/
 .env
-ios/
 .DS_Store
+ios/
+*.xcworkspace
+*.xcodeproj

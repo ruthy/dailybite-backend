@@ -1,5 +1,18 @@
 {
   "appId": "fit.dailybite.app",
   "appName": "DailyBite",
-  "webDir": "public"
+  "webDir": "dist",
+  "server": {
+    "iosScheme": "https"
+  },
+  "plugins": {
+    "Camera": {
+      "presentationStyle": "fullScreen"
+    },
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "showSpinner": false,
+      "backgroundColor": "#065F46"
+    }
+  }
 }
