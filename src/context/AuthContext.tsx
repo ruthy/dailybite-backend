@@ -97,6 +97,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
       })
       if (profileError) return { error: profileError.message }
+
+      // Send welcome email via backend
+      const apiUrl = import.meta.env.VITE_API_URL
+      if (apiUrl) {
+        fetch(`${apiUrl}/api/send-welcome-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name, lang: 'en' }),
+        }).catch(() => {}) // non-blocking
+      }
     }
     return { error: null }
   }
