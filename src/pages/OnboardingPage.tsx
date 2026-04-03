@@ -56,7 +56,10 @@ export default function OnboardingPage() {
     if (!user) return
     setSaving(true)
     const target = calculateCalories()
-    const { error } = await supabase.from('profiles').update({
+    const { error } = await supabase.from('profiles').upsert({
+      id: user.id,
+      name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+      email: user.email || '',
       date_of_birth: dob,
       height_cm: parseFloat(heightCm),
       weight_kg: parseFloat(weightKg),
@@ -64,7 +67,7 @@ export default function OnboardingPage() {
       goal,
       daily_calorie_target: target,
       onboarding_completed: true,
-    }).eq('id', user.id)
+    })
 
     if (error) {
       alert('Failed to save. Please try again.')
