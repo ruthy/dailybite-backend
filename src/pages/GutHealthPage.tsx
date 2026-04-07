@@ -56,34 +56,47 @@ export default function GutHealthPage() {
   const [recipes, setRecipes] = useState<any[]>([])
   const [expandedRecipe, setExpandedRecipe] = useState<string | null>(null)
   const [detoxChecks, setDetoxChecks] = useState<Set<string>>(new Set())
+  const [openDetoxDay, setOpenDetoxDay] = useState<number | null>(null)
+  const [logStatus, setLogStatus] = useState<string>('')
+  const [history, setHistory] = useState<any[]>([])
+  const [selectedCalDay, setSelectedCalDay] = useState<number | null>(null)
   const today = new Date().toISOString().split('T')[0]
 
   useEffect(() => {
-    if (user) loadToday()
+    if (user) { loadToday(); loadHistory() }
     loadRecipes()
   }, [user])
 
   async function loadToday() {
-    const { data } = await supabase
-      .from('bloating_logs')
-      .select('*')
-      .eq('user_id', user!.id)
-      .eq('date', today)
-      .single()
-    if (data) {
-      setSeverity(data.severity)
-      setTriggers(data.triggers || [])
-      setNotes(data.notes || '')
-      setTodayLogged(true)
+    if (!user?.email) return
+    try {
+      const resp = await fetch(`/api/bloating-log/${encodeURIComponent(user.email)}/${today}`)
+      const data = resp.ok ? await resp.json() : null
+      if (data) {
+        setSeverity(data.severity)
+        setTriggers(data.triggers || [])
+        setNotes(data.notes || '')
+        setTodayLogged(true)
+      }
+    } catch (err) {
+      console.error('Failed to load today bloating log:', err)
     }
   }
 
+  async function loadHistory() {
+    if (!user?.email) return
+    try {
+      const resp = await fetch(`/api/bloating-history/${encodeURIComponent(user.email)}`)
+      if (resp.ok) setHistory(await resp.json())
+    } catch {}
+  }
+
   async function loadRecipes() {
-    const { data } = await supabase
-      .from('gut_health_recipes')
-      .select('*')
-      .order('sort_order')
-    setRecipes(data || [])
+    try {
+      const resp = await fetch('/api/recipes')
+      const data = resp.ok ? await resp.json() : []
+      setRecipes(data)
+    } catch { setRecipes([]) }
   }
 
   function toggleTrigger(t: string) {
@@ -99,15 +112,33 @@ export default function GutHealthPage() {
   }
 
   async function handleLog() {
-    if (!user || severity === 0) return
-    await supabase.from('bloating_logs').upsert({
-      user_id: user.id,
-      date: today,
-      severity,
-      triggers,
-      notes,
-    }, { onConflict: 'user_id,date' })
-    setTodayLogged(true)
+    if (!user || !user.email) {
+      setLogStatus('Error: Not signed in. Please sign in and try again.')
+      return
+    }
+    if (severity === 0) {
+      setLogStatus('Please select a bloating severity level first.')
+      return
+    }
+    setLogStatus('Saving...')
+    try {
+      const resp = await fetch('/api/bloating-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, date: today, severity, triggers, notes }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: 'Server error' }))
+        setLogStatus(`Error: ${err.error || 'Failed to save'}`)
+        return
+      }
+      setTodayLogged(true)
+      setLogStatus('Saved successfully!')
+      loadHistory()
+      setTimeout(() => setLogStatus(''), 3000)
+    } catch (err: any) {
+      setLogStatus(`Error: Could not reach server. ${err?.message || ''}`)
+    }
   }
 
   return (
@@ -168,7 +199,100 @@ export default function GutHealthPage() {
             ) : (
               <button className="gut-btn" onClick={handleLog} disabled={severity === 0}>Log Today</button>
             )}
+            {logStatus && (
+              <p style={{
+                marginTop: '10px',
+                textAlign: 'center',
+                fontSize: '14px',
+                fontWeight: 500,
+                color: logStatus.startsWith('Error') || logStatus.startsWith('Please') ? '#d32f2f' : logStatus === 'Saving...' ? '#888' : '#2e7d32',
+              }}>
+                {logStatus}
+              </p>
+            )}
           </div>
+
+          {/* Bloating Calendar */}
+          {history.length > 0 && (() => {
+            const now = new Date()
+            const month = now.getMonth()
+            const year = now.getFullYear()
+            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
+            const firstDay = new Date(year, month, 1).getDay()
+            const daysInMonth = new Date(year, month + 1, 0).getDate()
+            const todayDate = now.getDate()
+
+            const logMap: Record<number, any> = {}
+            history.forEach((log: any) => {
+              const d = new Date(log.date + 'T00:00:00')
+              if (d.getMonth() === month && d.getFullYear() === year) {
+                logMap[d.getDate()] = log
+              }
+            })
+
+            const faces = ['', '😊', '🙂', '😐', '😣', '😫']
+            const selectedLog = selectedCalDay ? logMap[selectedCalDay] : null
+
+            return (
+              <div className="bloating-calendar">
+                <h3>Bloating Calendar — {monthNames[month]} {year}</h3>
+                <div className="bloating-cal-grid">
+                  {['S','M','T','W','T','F','S'].map((d, i) => (
+                    <span key={i} className="bloating-cal-weekday">{d}</span>
+                  ))}
+                  {Array.from({ length: firstDay }).map((_, i) => (
+                    <div key={`e-${i}`} />
+                  ))}
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const dateNum = i + 1
+                    const log = logMap[dateNum]
+                    const isToday = dateNum === todayDate
+                    const isSelected = selectedCalDay === dateNum
+                    return (
+                      <div
+                        key={dateNum}
+                        className={`bloating-cal-cell ${log ? 'has-log' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
+                        onClick={() => log && setSelectedCalDay(isSelected ? null : dateNum)}
+                      >
+                        <span className="bloating-cal-date">{dateNum}</span>
+                        {log && <span className="bloating-cal-face">{faces[log.severity] || ''}</span>}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Selected day detail */}
+                {selectedLog && (
+                  <div className="bloating-cal-detail">
+                    <div className="bloating-cal-detail-header">
+                      <span className="bloating-cal-detail-face">{faces[selectedLog.severity]}</span>
+                      <div>
+                        <strong>{new Date(selectedLog.date + 'T00:00:00').toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}</strong>
+                        <span>Severity: {selectedLog.severity}/5</span>
+                      </div>
+                    </div>
+                    {selectedLog.triggers && selectedLog.triggers.length > 0 && (
+                      <div className="bloating-cal-detail-triggers">
+                        {selectedLog.triggers.map((t: string, i: number) => (
+                          <span key={i} className="bloating-cal-trigger-chip">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                    {selectedLog.notes && (
+                      <p className="bloating-cal-detail-notes">{selectedLog.notes}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Legend */}
+                <div className="bloating-cal-legend">
+                  {[1,2,3,4,5].map(s => (
+                    <span key={s} className="bloating-cal-legend-item">{faces[s]} {s}</span>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
         </div>
       )}
 
@@ -180,12 +304,24 @@ export default function GutHealthPage() {
             <p>{detoxPlan.description}</p>
           </div>
 
-          {detoxPlan.days.map((day, di) => (
-            <div key={di} className="detox-day">
-              <h3>{day.label}</h3>
+          <div className="detox-day-buttons">
+            {detoxPlan.days.map((day, di) => (
+              <button
+                key={di}
+                className={`detox-day-btn ${openDetoxDay === di ? 'active' : ''}`}
+                onClick={() => setOpenDetoxDay(openDetoxDay === di ? null : di)}
+              >
+                {day.label}
+                <span className={`detox-day-arrow ${openDetoxDay === di ? 'open' : ''}`}>▶</span>
+              </button>
+            ))}
+          </div>
+
+          {openDetoxDay !== null && (
+            <div className="detox-day-content">
               <div className="detox-items">
-                {day.items.map((item, ii) => {
-                  const key = `${di}-${ii}`
+                {detoxPlan.days[openDetoxDay].items.map((item, ii) => {
+                  const key = `${openDetoxDay}-${ii}`
                   const checked = detoxChecks.has(key)
                   return (
                     <div key={ii} className={`detox-item ${checked ? 'checked' : ''}`} onClick={() => toggleDetoxCheck(key)}>
@@ -200,7 +336,7 @@ export default function GutHealthPage() {
                 })}
               </div>
             </div>
-          ))}
+          )}
 
           <div className="detox-tips">
             <h3>Tips for Success</h3>

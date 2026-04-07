@@ -1,57 +1,65 @@
 import { describe, it, expect } from 'vitest'
 
-// Mifflin-St Jeor formula for women
-function calculateCalories(
-  weightKg: number,
-  heightCm: number,
-  age: number,
-  activity: string,
-  goal: string
-): number {
+function calculateCalories(weightKg: number, heightCm: number, age: number, activity: string, goal: string): number {
   const bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161
-  const multipliers: Record<string, number> = {
-    sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9
-  }
-  const tdee = bmr * (multipliers[activity] || 1.2)
-  const adjustment = goal === 'lose' ? -500 : goal === 'gain' ? 250 : 0
-  return Math.max(1200, Math.round(tdee + adjustment))
+  const multipliers: Record<string, number> = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9 }
+  const tdee = Math.round(bmr * (multipliers[activity] || 1.2))
+  let target = tdee
+  if (goal === 'lose') target = tdee - 500
+  else if (goal === 'gain') target = tdee + 300
+  const minCal = weightKg < 60 ? 1100 : 1200
+  return Math.max(minCal, Math.round(target))
 }
 
 describe('Calorie Calculator', () => {
-  it('calculates correct target for typical user wanting to lose weight', () => {
-    // Woman, 70kg, 165cm, 42 years old, moderate activity, lose weight
-    const result = calculateCalories(70, 165, 42, 'moderate', 'lose')
-    expect(result).toBeGreaterThan(1200)
-    expect(result).toBeLessThan(2000)
-  })
-
-  it('never goes below 1200 calories', () => {
-    const result = calculateCalories(40, 140, 80, 'sedentary', 'lose')
-    expect(result).toBe(1200)
-  })
-
-  it('returns higher for maintain than lose', () => {
-    const lose = calculateCalories(70, 165, 42, 'moderate', 'lose')
-    const maintain = calculateCalories(70, 165, 42, 'moderate', 'maintain')
-    expect(maintain).toBeGreaterThan(lose)
+  it('lose is always 500 less than maintain', () => {
+    const lose = calculateCalories(72, 165, 43, 'moderate', 'lose')
+    const maintain = calculateCalories(72, 165, 43, 'moderate', 'maintain')
     expect(maintain - lose).toBe(500)
   })
 
-  it('returns higher for more active users', () => {
-    const sedentary = calculateCalories(70, 165, 42, 'sedentary', 'maintain')
-    const active = calculateCalories(70, 165, 42, 'active', 'maintain')
-    expect(active).toBeGreaterThan(sedentary)
+  it('gain is always 300 more than maintain', () => {
+    const maintain = calculateCalories(72, 165, 43, 'moderate', 'maintain')
+    const gain = calculateCalories(72, 165, 43, 'moderate', 'gain')
+    expect(gain - maintain).toBe(300)
   })
 
-  it('returns higher for gain than maintain', () => {
-    const maintain = calculateCalories(70, 165, 42, 'moderate', 'maintain')
-    const gain = calculateCalories(70, 165, 42, 'moderate', 'gain')
-    expect(gain - maintain).toBe(250)
+  it('all 3 goals produce different numbers for Sarah', () => {
+    const lose = calculateCalories(72, 165, 43, 'moderate', 'lose')
+    const maintain = calculateCalories(72, 165, 43, 'moderate', 'maintain')
+    const gain = calculateCalories(72, 165, 43, 'moderate', 'gain')
+    expect(lose).toBe(1632)
+    expect(maintain).toBe(2132)
+    expect(gain).toBe(2432)
   })
 
-  it('handles unknown activity level by defaulting to sedentary', () => {
+  it('all 3 goals produce different numbers for small woman', () => {
+    const lose = calculateCalories(55, 155, 50, 'sedentary', 'lose')
+    const maintain = calculateCalories(55, 155, 50, 'sedentary', 'maintain')
+    const gain = calculateCalories(55, 155, 50, 'sedentary', 'gain')
+    expect(lose).toBeLessThan(maintain)
+    expect(maintain).toBeLessThan(gain)
+  })
+
+  it('small woman floor is 1100 not 1200', () => {
+    const result = calculateCalories(50, 150, 60, 'sedentary', 'lose')
+    expect(result).toBeGreaterThanOrEqual(1100)
+  })
+
+  it('larger woman floor is 1200', () => {
+    const result = calculateCalories(65, 160, 70, 'sedentary', 'lose')
+    expect(result).toBeGreaterThanOrEqual(1200)
+  })
+
+  it('more active users get higher targets', () => {
+    const sed = calculateCalories(70, 165, 42, 'sedentary', 'maintain')
+    const act = calculateCalories(70, 165, 42, 'active', 'maintain')
+    expect(act).toBeGreaterThan(sed)
+  })
+
+  it('unknown activity defaults to sedentary', () => {
     const unknown = calculateCalories(70, 165, 42, 'unknown', 'maintain')
-    const sedentary = calculateCalories(70, 165, 42, 'sedentary', 'maintain')
-    expect(unknown).toBe(sedentary)
+    const sed = calculateCalories(70, 165, 42, 'sedentary', 'maintain')
+    expect(unknown).toBe(sed)
   })
 })

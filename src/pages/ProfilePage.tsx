@@ -36,7 +36,11 @@ export default function ProfilePage() {
       weight_kg: weight,
     }, { onConflict: 'user_id,date' })
 
-    await supabase.from('profiles').update({ weight_kg: weight }).eq('id', user.id)
+    await fetch('/api/save-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: user.email, weight_kg: weight }),
+    })
     await refreshProfile()
 
     setWeightInput('')
@@ -45,11 +49,9 @@ export default function ProfilePage() {
 
   async function handleDeleteAccount() {
     if (!user) return
-    const { error } = await supabase.from('profiles').delete().eq('id', user.id)
-    if (error) {
-      alert('Failed to delete account. Please try again.')
-      return
-    }
+    try {
+      await supabase.from('profiles').delete().eq('id', user.id)
+    } catch {}
     await signOut()
   }
 
@@ -108,20 +110,79 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Weight History */}
-      {weightHistory.length > 0 && (
-        <div className="profile-section">
-          <h3>Recent Weights</h3>
-          <div className="weight-list">
-            {weightHistory.slice(0, 7).map((w) => (
-              <div key={w.date} className="weight-row">
-                <span>{new Date(w.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                <span className="weight-val">{w.weight_kg} kg</span>
+      {/* Weight Graph */}
+      {weightHistory.length > 0 && (() => {
+        const sorted = [...weightHistory].reverse().slice(-14)
+        const weights = sorted.map(w => w.weight_kg)
+        const maxW = Math.max(...weights)
+        const minW = Math.min(...weights)
+        const range = maxW - minW || 1
+        const padding = range * 0.1
+
+        return (
+          <div className="profile-section">
+            <h3>Weight Progress</h3>
+            <div className="weight-graph">
+              <div className="weight-graph-labels">
+                <span>{maxW + padding > 0 ? (maxW + padding).toFixed(0) : maxW}kg</span>
+                <span>{minW - padding > 0 ? (minW - padding).toFixed(0) : minW}kg</span>
               </div>
-            ))}
+              <div className="weight-graph-area">
+                <svg viewBox={`0 0 ${sorted.length * 40} 120`} className="weight-svg" preserveAspectRatio="none">
+                  {/* Grid lines */}
+                  <line x1="0" y1="30" x2={sorted.length * 40} y2="30" stroke="#e0e0e0" strokeWidth="0.5" />
+                  <line x1="0" y1="60" x2={sorted.length * 40} y2="60" stroke="#e0e0e0" strokeWidth="0.5" />
+                  <line x1="0" y1="90" x2={sorted.length * 40} y2="90" stroke="#e0e0e0" strokeWidth="0.5" />
+
+                  {/* Area fill */}
+                  <path
+                    d={`M ${sorted.map((w, i) => `${i * 40 + 20},${110 - ((w.weight_kg - minW + padding) / (range + padding * 2)) * 100}`).join(' L ')} L ${(sorted.length - 1) * 40 + 20},110 L 20,110 Z`}
+                    fill="rgba(45,122,58,0.1)"
+                  />
+
+                  {/* Line */}
+                  <polyline
+                    points={sorted.map((w, i) => `${i * 40 + 20},${110 - ((w.weight_kg - minW + padding) / (range + padding * 2)) * 100}`).join(' ')}
+                    fill="none"
+                    stroke="#2d7a3a"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+
+                  {/* Dots */}
+                  {sorted.map((w, i) => (
+                    <circle
+                      key={i}
+                      cx={i * 40 + 20}
+                      cy={110 - ((w.weight_kg - minW + padding) / (range + padding * 2)) * 100}
+                      r="4"
+                      fill="#2d7a3a"
+                      stroke="#fff"
+                      strokeWidth="2"
+                    />
+                  ))}
+                </svg>
+                <div className="weight-graph-dates">
+                  {sorted.map((w, i) => (
+                    <span key={i} className="weight-graph-date">
+                      {new Date(w.date + 'T00:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' })}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {weightChange !== null && (
+              <div className="weight-graph-summary">
+                <span className={weightChange <= 0 ? 'loss' : 'gain'}>
+                  {weightChange <= 0 ? '↓' : '↑'} {Math.abs(weightChange)}kg
+                </span>
+                <span className="weight-graph-period">since you started</span>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Actions */}
       <div className="profile-actions">

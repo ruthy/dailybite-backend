@@ -16,36 +16,43 @@
 }
 
 .prog-stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.prog-stat {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16px 8px;
+  gap: 0;
+  margin-bottom: 16px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.prog-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+  border-right: 1px solid #f0f0f0;
+}
+
+.prog-stat:last-child {
+  border-right: none;
 }
 
 .prog-stat-icon {
-  font-size: 22px;
-  margin-bottom: 4px;
+  font-size: 16px;
+  margin-bottom: 2px;
 }
 
 .prog-stat-val {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 800;
   color: #2d7a3a;
 }
 
 .prog-stat-label {
-  font-size: 12px;
+  font-size: 9px;
   color: #666;
+  text-align: center;
 }
 
 .prog-card {
@@ -112,11 +119,72 @@
   white-space: nowrap;
 }
 
-.weight-change-text {
-  font-size: 14px;
-  color: #2d7a3a;
-  font-weight: 600;
+/* Line Graph */
+.prog-graph {
+  display: flex;
+  gap: 8px;
+}
+
+.prog-graph-labels {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #999;
+  width: 34px;
+  flex-shrink: 0;
+  padding: 4px 0;
+}
+
+.prog-graph-area {
+  flex: 1;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.prog-svg {
+  width: 100%;
+  min-width: 200px;
+  height: 130px;
+}
+
+.prog-graph-dates {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 4px;
+}
+
+.prog-graph-dates span {
+  font-size: 9px;
+  color: #999;
   text-align: center;
+  flex: 1;
+}
+
+.prog-change {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.prog-loss {
+  font-size: 20px;
+  font-weight: 800;
+  color: #2d7a3a;
+}
+
+.prog-gain {
+  font-size: 20px;
+  font-weight: 800;
+  color: #c62828;
+}
+
+.prog-since {
+  font-size: 13px;
+  color: #999;
 }
 
 .prog-empty {

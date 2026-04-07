@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import PageHeader from '../components/common/PageHeader'
@@ -12,10 +12,10 @@ const activityLevels = [
   { value: 'very_active', label: 'Very Active', desc: 'Hard exercise daily', multiplier: 1.9 },
 ]
 
-const goals = [
-  { value: 'lose', label: 'Lose Weight', adjustment: -500 },
-  { value: 'maintain', label: 'Maintain', adjustment: 0 },
-  { value: 'gain', label: 'Gain Weight', adjustment: 250 },
+const goalOptions = [
+  { value: 'lose', label: 'Lose Weight', desc: '1 kg / week' },
+  { value: 'maintain', label: 'Maintain', desc: 'Stay the same' },
+  { value: 'gain', label: 'Gain Weight', desc: 'Healthy gain' },
 ]
 
 export default function CalcPage() {
@@ -25,72 +25,104 @@ export default function CalcPage() {
   const [age, setAge] = useState('')
   const [activity, setActivity] = useState('sedentary')
   const [goal, setGoal] = useState('lose')
-  const [result, setResult] = useState<number | null>(null)
-  const [saved, setSaved] = useState(false)
+  const [savedTarget, setSavedTarget] = useState<number | null>(null)
+  const [btnText, setBtnText] = useState('Save as My Target')
+  const [btnClass, setBtnClass] = useState('')
+  const didLoad = useRef(false)
 
   useEffect(() => {
-    if (profile) {
+    if (profile && !didLoad.current) {
+      didLoad.current = true
       if (profile.height_cm) setHeightCm(String(profile.height_cm))
       if (profile.weight_kg) setWeightKg(String(profile.weight_kg))
       if (profile.activity_level) setActivity(profile.activity_level)
       if (profile.goal) setGoal(profile.goal)
+      if (profile.daily_calorie_target) setSavedTarget(profile.daily_calorie_target)
       if (profile.date_of_birth) {
-        const today = new Date()
         const birth = new Date(profile.date_of_birth)
-        let a = today.getFullYear() - birth.getFullYear()
-        const m = today.getMonth() - birth.getMonth()
-        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--
-        setAge(String(a))
+        if (!isNaN(birth.getTime())) {
+          const today = new Date()
+          let a = today.getFullYear() - birth.getFullYear()
+          const m = today.getMonth() - birth.getMonth()
+          if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--
+          setAge(String(a))
+        }
       }
-      if (profile.daily_calorie_target) setResult(profile.daily_calorie_target)
     }
   }, [profile])
 
-  function calculate() {
-    const w = parseFloat(weightKg)
-    const h = parseFloat(heightCm)
-    const a = parseInt(age)
-    if (!w || !h || !a) return
-
+  // Calculate
+  const w = parseFloat(weightKg)
+  const h = parseFloat(heightCm)
+  const a = parseInt(age)
+  let result: number | null = null
+  if (w > 0 && h > 0 && a > 0) {
     const bmr = (10 * w) + (6.25 * h) - (5 * a) - 161
     const mult = activityLevels.find(l => l.value === activity)?.multiplier || 1.2
-    const adj = goals.find(g => g.value === goal)?.adjustment || 0
-    const target = Math.max(1200, Math.round(bmr * mult + adj))
-    setResult(target)
-    setSaved(false)
+    const tdee = bmr * mult
+    let target = tdee
+    if (goal === 'lose') target = tdee * 0.62
+    else if (goal === 'gain') target = tdee + 300
+    result = Math.max(1000, Math.round(target))
   }
 
-  async function saveTarget() {
+  // Reset button when inputs change
+  useEffect(() => {
+    setBtnText('Save as My Target')
+    setBtnClass('')
+  }, [weightKg, heightCm, age, activity, goal])
+
+  async function handleSave() {
     if (!user || !result) return
-    await supabase.from('profiles').update({
-      daily_calorie_target: result,
-      height_cm: parseFloat(heightCm),
-      weight_kg: parseFloat(weightKg),
-      activity_level: activity,
-      goal,
-    }).eq('id', user.id)
-    await refreshProfile()
-    setSaved(true)
+
+    setBtnText('Saving...')
+    setBtnClass('saving')
+
+    try {
+      const resp = await fetch('/api/save-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          daily_calorie_target: result,
+          height_cm: parseFloat(heightCm),
+          weight_kg: parseFloat(weightKg),
+          activity_level: activity,
+          goal,
+        }),
+      })
+
+      const data = await resp.json()
+
+      if (!resp.ok) {
+        setBtnText('Error: ' + (data.error || 'Save failed'))
+        setBtnClass('error')
+        return
+      }
+
+      setSavedTarget(result)
+      setBtnText(`✓ Saved ${result} cal → Dashboard & Meal Plan`)
+      setBtnClass('saved')
+      refreshProfile().catch(() => {})
+
+    } catch (err: any) {
+      setBtnText('Network error — check connection')
+      setBtnClass('error')
+    }
   }
 
   return (
     <div className="calc-page">
       <PageHeader title="Daily Calorie Calculator" color="#2d6b3a" />
-
       <div className="calc-content">
-        {/* Current target */}
-        {profile?.daily_calorie_target && (
-          <div className="calc-current">
-            <span className="calc-current-label">Your current daily target</span>
-            <span className="calc-current-val">{profile.daily_calorie_target} cal</span>
+        {/* Show saved target if exists */}
+        {savedTarget && (
+          <div className="calc-saved-banner">
+            Your saved target: <strong>{savedTarget} cal/day</strong>
           </div>
         )}
 
-        {/* Form */}
         <div className="calc-card">
-          <h3>Calculate Your Target</h3>
-          <p className="calc-info">Based on the Mifflin-St Jeor equation for women.</p>
-
           <div className="calc-fields">
             <div className="calc-row">
               <div className="calc-field">
@@ -110,11 +142,9 @@ export default function CalcPage() {
             <label className="calc-section-label">Activity Level</label>
             <div className="calc-options">
               {activityLevels.map(l => (
-                <button
-                  key={l.value}
+                <button key={l.value} type="button"
                   className={`calc-option ${activity === l.value ? 'active' : ''}`}
-                  onClick={() => setActivity(l.value)}
-                >
+                  onClick={() => setActivity(l.value)}>
                   <strong>{l.label}</strong>
                   <span>{l.desc}</span>
                 </button>
@@ -123,38 +153,34 @@ export default function CalcPage() {
 
             <label className="calc-section-label">Your Goal</label>
             <div className="calc-goals">
-              {goals.map(g => (
-                <button
-                  key={g.value}
+              {goalOptions.map(g => (
+                <button key={g.value} type="button"
                   className={`calc-goal ${goal === g.value ? 'active' : ''}`}
-                  onClick={() => setGoal(g.value)}
-                >
-                  {g.label}
+                  onClick={() => setGoal(g.value)}>
+                  <strong>{g.label}</strong>
+                  <span className="calc-goal-desc">{g.desc}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <button className="calc-btn" onClick={calculate} disabled={!age || !heightCm || !weightKg}>
-            Calculate
-          </button>
-        </div>
-
-        {/* Result */}
-        {result && (
-          <div className="calc-result">
-            <div className="calc-result-box">
-              <span className="calc-result-num">{result}</span>
-              <span className="calc-result-unit">calories per day</span>
+          {result && (
+            <div className="calc-inline-result">
+              <span className="calc-inline-num">{result}</span>
+              <span className="calc-inline-label">calories / day</span>
             </div>
-            <p className="calc-disclaimer">This is an estimate. Consult a healthcare provider for personalized advice.</p>
-            {saved ? (
-              <button className="calc-save-btn saved" disabled>Saved!</button>
-            ) : (
-              <button className="calc-save-btn" onClick={saveTarget}>Save as My Target</button>
-            )}
-          </div>
-        )}
+          )}
+
+          {result && (
+            <button type="button" className={`calc-save-btn ${btnClass}`}
+              onClick={handleSave}
+              disabled={btnClass === 'saving' || btnClass === 'saved'}>
+              {btnText}
+            </button>
+          )}
+
+          <p className="calc-disclaimer">Based on Mifflin-St Jeor equation. Consult a healthcare provider for personalized advice.</p>
+        </div>
       </div>
     </div>
   )

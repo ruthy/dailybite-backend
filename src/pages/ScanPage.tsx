@@ -13,8 +13,6 @@ interface FoodItem {
   fat_g: number
 }
 
-const API_URL = import.meta.env.VITE_API_URL || ''
-
 export default function ScanPage() {
   const { user } = useAuth()
   const [scanning, setScanning] = useState(false)
@@ -53,7 +51,7 @@ export default function ScanPage() {
       const { data: urlData } = await supabase.storage.from('meal-photos').createSignedUrl(fileName, 3600)
 
       // Call API for AI scan
-      const response = await fetch(`${API_URL}/api/scan-plate`, {
+      const response = await fetch('/api/scan-plate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

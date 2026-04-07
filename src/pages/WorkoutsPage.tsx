@@ -49,8 +49,11 @@ export default function WorkoutsPage() {
   }, [user])
 
   async function loadWorkouts() {
-    const { data } = await supabase.from('workouts').select('*').order('sort_order')
-    setWorkouts(data || [])
+    try {
+      const resp = await fetch('/api/workouts')
+      const data = resp.ok ? await resp.json() : []
+      setWorkouts(data)
+    } catch { setWorkouts([]) }
 
     if (user) {
       const { data: logs } = await supabase
@@ -135,9 +138,9 @@ export default function WorkoutsPage() {
               {isPlaying && ytId ? (
                 <div className="wo-video-container">
                   <iframe
-                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+                    src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1&fs=1&iv_load_policy=3`}
                     title={wo.title}
-                    allow="autoplay; encrypted-media"
+                    allow="autoplay; encrypted-media; fullscreen"
                     allowFullScreen
                     className="wo-video-frame"
                   />

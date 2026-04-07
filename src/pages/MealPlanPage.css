@@ -12,6 +12,55 @@
   padding-top: 12px;
 }
 
+.mp-target-bar {
+  margin: 12px 12px 0;
+  padding: 14px 16px;
+  background: #2d7a3a;
+  border-radius: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mp-target-info {
+  flex: 1;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mp-target-label {
+  font-size: 11px;
+  color: #c8e6c9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mp-target-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.mp-target-num.over {
+  color: #fca5a5;
+}
+
+.mp-target-num.under {
+  color: #a5d6a7;
+}
+
+.mp-target-remaining {
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c8e6c9;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+
 .mp-daily-total {
   display: flex;
   justify-content: space-between;

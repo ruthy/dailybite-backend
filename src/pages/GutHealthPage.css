@@ -43,12 +43,163 @@
 .gut-btn:disabled { background: #999; }
 .gut-btn.saved { background: #f5f9f5; color: #2d7a3a; border: 2px solid #2d7a3a; }
 
+/* BLOATING CALENDAR */
+.bloating-calendar {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.bloating-calendar h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.bloating-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.bloating-cal-weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #999;
+  padding: 4px 0;
+}
+
+.bloating-cal-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  min-height: 42px;
+  border-radius: 8px;
+}
+
+.bloating-cal-cell.today {
+  border: 2px solid #2d7a3a;
+}
+
+.bloating-cal-cell.has-log {
+  background: #f0fdf4;
+}
+
+.bloating-cal-date {
+  font-size: 12px;
+  font-weight: 700;
+  color: #333;
+}
+
+.bloating-cal-face {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.bloating-cal-cell.selected {
+  background: #2d7a3a;
+}
+
+.bloating-cal-cell.selected .bloating-cal-date {
+  color: #fff;
+}
+
+.bloating-cal-cell.has-log {
+  cursor: pointer;
+}
+
+/* Detail card */
+.bloating-cal-detail {
+  background: #2d7a3a;
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 10px;
+  color: #fff;
+}
+
+.bloating-cal-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.bloating-cal-detail-face {
+  font-size: 32px;
+}
+
+.bloating-cal-detail-header strong {
+  display: block;
+  font-size: 15px;
+}
+
+.bloating-cal-detail-header span {
+  font-size: 13px;
+  color: #c8e6c9;
+}
+
+.bloating-cal-detail-triggers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.bloating-cal-trigger-chip {
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bloating-cal-detail-notes {
+  font-size: 13px;
+  color: #c8e6c9;
+  font-style: italic;
+}
+
+.bloating-cal-legend {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.bloating-cal-legend-item {
+  font-size: 11px;
+  color: #666;
+}
+
 /* DETOX */
 .detox-header { text-align: center; margin-bottom: 20px; }
 .detox-header h2 { font-size: 22px; font-weight: 800; color: #2d7a3a; margin-bottom: 6px; }
 .detox-header p { font-size: 14px; color: #666; }
-.detox-day { margin-bottom: 24px; }
-.detox-day h3 { font-size: 17px; font-weight: 700; color: #2d7a3a; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f0f0f0; }
+
+.detox-day-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
+.detox-day-btn {
+  flex: 1; display: flex; justify-content: space-between; align-items: center;
+  padding: 16px; background: #2d6b3a; color: #fff; border-radius: 12px;
+  font-size: 15px; font-weight: 700; font-family: inherit;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: all 0.2s;
+}
+.detox-day-btn.active { background: #1a5c2a; border-radius: 12px 12px 0 0; }
+.detox-day-arrow { font-size: 12px; color: #E8F5E9; transition: transform 0.3s; }
+.detox-day-arrow.open { transform: rotate(90deg); color: #E8F5E9; }
+
+.detox-day-content {
+  background: #fff; border-radius: 0 0 12px 12px; padding: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-top: -4px; margin-bottom: 16px;
+}
 .detox-items { display: flex; flex-direction: column; gap: 8px; }
 .detox-item {
   display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px;

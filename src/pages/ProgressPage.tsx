@@ -67,7 +67,13 @@ export default function ProgressPage() {
     if (isNaN(w) || w < 20 || w > 300) return
     const today = new Date().toISOString().split('T')[0]
     await supabase.from('weight_logs').upsert({ user_id: user.id, date: today, weight_kg: w }, { onConflict: 'user_id,date' })
-    await supabase.from('profiles').update({ weight_kg: w }).eq('id', user.id)
+    if (user) {
+      await fetch('/api/save-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, weight_kg: w }),
+      })
+    }
     setWeightInput('')
     loadAll()
   }
@@ -108,38 +114,66 @@ export default function ProgressPage() {
         </div>
       </div>
 
-      {/* Weight Chart */}
+      {/* Weight Graph */}
       <div className="prog-card">
-        <h3>Weight History</h3>
-        {weights.length > 1 ? (
-          <>
-            <div className="weight-chart">
-              <div className="chart-labels">
-                <span>{maxW}kg</span>
-                <span>{minW}kg</span>
-              </div>
-              <div className="chart-bars">
-                {weights.slice(-14).map((w, i) => (
-                  <div key={i} className="chart-bar-wrap">
-                    <div
-                      className="chart-bar"
-                      style={{ height: `${((w.weight_kg - minW) / range) * 100}%` }}
+        <h3>Weight Progress</h3>
+        {weights.length > 1 ? (() => {
+          const sorted = weights.slice(-14)
+          const padding = range * 0.1
+          return (
+            <>
+              <div className="prog-graph">
+                <div className="prog-graph-labels">
+                  <span>{(maxW + padding).toFixed(0)}kg</span>
+                  <span>{(minW - padding > 0 ? minW - padding : minW).toFixed(0)}kg</span>
+                </div>
+                <div className="prog-graph-area">
+                  <svg viewBox={`0 0 ${sorted.length * 40} 120`} className="prog-svg" preserveAspectRatio="none">
+                    <line x1="0" y1="30" x2={sorted.length * 40} y2="30" stroke="#e0e0e0" strokeWidth="0.5" />
+                    <line x1="0" y1="60" x2={sorted.length * 40} y2="60" stroke="#e0e0e0" strokeWidth="0.5" />
+                    <line x1="0" y1="90" x2={sorted.length * 40} y2="90" stroke="#e0e0e0" strokeWidth="0.5" />
+                    <path
+                      d={`M ${sorted.map((w, i) => `${i * 40 + 20},${110 - ((w.weight_kg - minW + padding) / (range + padding * 2)) * 100}`).join(' L ')} L ${(sorted.length - 1) * 40 + 20},110 L 20,110 Z`}
+                      fill="rgba(45,122,58,0.1)"
                     />
-                    <span className="chart-date">
-                      {new Date(w.date + 'T00:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' })}
-                    </span>
+                    <polyline
+                      points={sorted.map((w, i) => `${i * 40 + 20},${110 - ((w.weight_kg - minW + padding) / (range + padding * 2)) * 100}`).join(' ')}
+                      fill="none" stroke="#2d7a3a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    />
+                    {sorted.map((w, i) => (
+                      <g key={i}>
+                        <circle
+                          cx={i * 40 + 20}
+                          cy={110 - ((w.weight_kg - minW + padding) / (range + padding * 2)) * 100}
+                          r="4" fill="#2d7a3a" stroke="#fff" strokeWidth="2"
+                        />
+                        <text
+                          x={i * 40 + 20}
+                          y={110 - ((w.weight_kg - minW + padding) / (range + padding * 2)) * 100 - 10}
+                          textAnchor="middle" fontSize="8" fill="#2d7a3a" fontWeight="700"
+                        >{w.weight_kg}</text>
+                      </g>
+                    ))}
+                  </svg>
+                  <div className="prog-graph-dates">
+                    {sorted.map((w, i) => (
+                      <span key={i}>{new Date(w.date + 'T00:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' })}</span>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
-            {change !== null && (
-              <p className="weight-change-text">
-                {change > 0 ? `+${change}` : change}kg since you started
-              </p>
-            )}
-          </>
-        ) : (
-          <p className="prog-empty">Log your weight regularly to see your chart here.</p>
+              {change !== null && (
+                <div className="prog-change">
+                  <span className={change <= 0 ? 'prog-loss' : 'prog-gain'}>
+                    {change <= 0 ? '↓' : '↑'} {Math.abs(change)}kg
+                  </span>
+                  <span className="prog-since">since you started</span>
+                </div>
+              )}
+            </>
+          )
+        })() : (
+          <p className="prog-empty">Log your weight regularly to see your graph here.</p>
         )}
       </div>
 

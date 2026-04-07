@@ -1,0 +1,61 @@
+.exercise-program-page { background: #f0f4f0; min-height: 100dvh; }
+
+.ep-sections { padding: 12px; display: flex; flex-wrap: wrap; gap: 10px; }
+
+.ep-section { flex: 1; min-width: calc(50% - 5px); }
+
+.ep-section-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%;
+  padding: 20px 10px; border-radius: 14px; color: #fff;
+  font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.2s; position: relative;
+}
+.ep-section-btn.open { border-radius: 14px; }
+.ep-section-btn:active { transform: scale(0.98); }
+
+.ep-section-icon { font-size: 30px; }
+.ep-section-btn strong { font-size: 14px; text-align: center; }
+.ep-section-sub { font-size: 11px; opacity: 0.7; }
+.ep-section-arrow { font-size: 10px; color: #E8F5E9; transition: transform 0.3s; position: absolute; top: 8px; right: 10px; }
+.ep-section-arrow.open { transform: rotate(90deg); color: #E8F5E9; }
+
+.ep-content {
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.ep-compact-cal {
+  display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin-bottom: 12px;
+}
+
+.ep-compact-day {
+  height: 30px; display: flex; align-items: center; justify-content: center;
+  background: #fff; border-radius: 6px; font-size: 12px; font-weight: 700;
+  color: #333; font-family: inherit; box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  transition: all 0.15s;
+}
+.ep-compact-day:active { transform: scale(0.9); }
+.ep-compact-day.selected { background: #2d7a3a; color: #fff; }
+
+.ep-day-detail {
+  border-radius: 12px; padding: 14px; color: #fff;
+}
+.ep-day-detail-label { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; }
+.ep-day-detail-title { font-size: 18px; font-weight: 800; margin: 2px 0 10px; }
+
+.ep-ex {
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.15); cursor: pointer;
+}
+.ep-ex:last-child { border-bottom: none; }
+.ep-ex.open { background: rgba(255,255,255,0.08); border-radius: 6px; padding: 8px 6px; margin: 0 -6px; }
+
+.ep-ex-row { display: flex; align-items: center; gap: 8px; }
+.ep-ex-dot { width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%; flex-shrink: 0; }
+.ep-ex-name { flex: 1; font-size: 13px; color: #e0e0e0; }
+.ep-ex-arrow { font-size: 9px; color: #E8F5E9; transition: transform 0.3s; }
+.ep-ex-arrow.open { transform: rotate(90deg); color: #E8F5E9; }
+.ep-ex-how {
+  margin: 6px 0 0 14px; padding: 8px 10px;
+  background: rgba(255,255,255,0.1); border-radius: 6px;
+  font-size: 12px; color: #fff; line-height: 1.5;
+}

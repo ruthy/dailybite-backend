@@ -17,7 +17,7 @@ app.use(cors({
     const allowed = [
       "https://dailybite.fit", "https://www.dailybite.fit",
       "https://dailybite-backend-pw2i.onrender.com",
-      "capacitor://localhost", "http://localhost:5173", "http://localhost:4173",
+      "capacitor://localhost", "http://localhost:3000", "http://localhost:5173", "http://localhost:4173",
     ];
     if (!origin || allowed.includes(origin)) cb(null, true);
     else cb(new Error("Not allowed by CORS"));
@@ -59,6 +59,155 @@ const emailLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: { e
 // ==========================================
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// Save profile — accepts token OR email-based lookup
+app.post("/api/save-profile", async (req, res) => {
+  try {
+    let userId = null;
+
+    // Try token auth first
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (token && token !== "undefined" && token !== "null") {
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+      if (!error && user) userId = user.id;
+    }
+
+    // Fallback: use email from request body
+    if (!userId && req.body.email) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", req.body.email)
+        .single();
+      if (data) userId = data.id;
+    }
+
+    if (!userId) {
+      return res.status(401).json({ error: "Could not identify user. Please sign in again." });
+    }
+
+    // Remove email from update data (don't overwrite)
+    const updateData = { ...req.body };
+    delete updateData.email;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(updateData)
+      .eq("id", userId)
+      .select();
+
+    if (error) return res.status(400).json({ error: error.message });
+    if (!data || data.length === 0) {
+      // Profile doesn't exist — insert it
+      const { data: inserted, error: insertErr } = await supabase
+        .from("profiles")
+        .insert({ id: userId, ...req.body })
+        .select();
+      if (insertErr) return res.status(400).json({ error: insertErr.message });
+      return res.json({ profile: inserted?.[0] || null });
+    }
+    res.json({ profile: data[0] });
+  } catch (err) {
+    console.error("Save profile error:", err);
+    res.status(500).json({ error: "Failed to save profile" });
+  }
+});
+
+// Get profile by email
+app.get("/api/profile/:email", async (req, res) => {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("email", req.params.email)
+    .single();
+  if (error) return res.status(404).json({ error: "Profile not found" });
+  res.json(data);
+});
+
+// Save bloating log
+app.post("/api/bloating-log", async (req, res) => {
+  const { email, date, severity, triggers, notes } = req.body;
+  if (!email || !date || !severity) return res.status(400).json({ error: "Missing fields" });
+
+  // Find user by email
+  const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).single();
+  if (!profile) return res.status(404).json({ error: "User not found" });
+
+  const { data, error } = await supabase.from("bloating_logs").upsert({
+    user_id: profile.id, date, severity, triggers: triggers || [], notes: notes || ''
+  }, { onConflict: "user_id,date" }).select();
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ log: data?.[0] || null });
+});
+
+// Get bloating log for a date
+app.get("/api/bloating-log/:email/:date", async (req, res) => {
+  const { data: profile } = await supabase.from("profiles").select("id").eq("email", req.params.email).single();
+  if (!profile) return res.json(null);
+
+  const { data } = await supabase.from("bloating_logs").select("*")
+    .eq("user_id", profile.id).eq("date", req.params.date).single();
+  res.json(data);
+});
+
+// Get bloating history (last 14 days)
+app.get("/api/bloating-history/:email", async (req, res) => {
+  const { data: profile } = await supabase.from("profiles").select("id").eq("email", req.params.email).single();
+  if (!profile) return res.json([]);
+  const { data } = await supabase.from("bloating_logs").select("*")
+    .eq("user_id", profile.id).order("date", { ascending: false }).limit(14);
+  res.json(data || []);
+});
+
+// Save steps
+app.post("/api/steps", async (req, res) => {
+  const { email, date, steps } = req.body;
+  if (!email || !date) return res.status(400).json({ error: "Missing fields" });
+  const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).single();
+  if (!profile) return res.status(404).json({ error: "User not found" });
+  const { data, error } = await supabase.from("step_logs").upsert(
+    { user_id: profile.id, date, steps: steps || 0 },
+    { onConflict: "user_id,date" }
+  ).select();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ log: data?.[0] || null });
+});
+
+// Get steps history
+app.get("/api/steps/:email", async (req, res) => {
+  const { data: profile } = await supabase.from("profiles").select("id").eq("email", req.params.email).single();
+  if (!profile) return res.json([]);
+  const { data } = await supabase.from("step_logs").select("*")
+    .eq("user_id", profile.id).order("date", { ascending: false }).limit(31);
+  res.json(data || []);
+});
+
+// Get meals for a day
+app.get("/api/meals/:day", async (req, res) => {
+  const day = parseInt(req.params.day) || 1;
+  const { data, error } = await supabase
+    .from("meal_plans")
+    .select("*")
+    .eq("day_number", day)
+    .order("sort_order");
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
+// Get all workouts
+app.get("/api/workouts", async (req, res) => {
+  const { data, error } = await supabase.from("workouts").select("*").order("sort_order");
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
+// Get all recipes
+app.get("/api/recipes", async (req, res) => {
+  const { data, error } = await supabase.from("gut_health_recipes").select("*").order("sort_order");
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
 });
 
 app.post("/api/scan-plate", scanLimiter, requireAuth, async (req, res) => {

@@ -1,0 +1,163 @@
+.shopping-page {
+  background: #f0f4f0;
+  min-height: 100dvh;
+}
+
+.shopping-progress {
+  padding: 12px 12px 0;
+}
+
+.shopping-progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.shopping-progress-bar {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.shopping-progress-fill {
+  height: 100%;
+  background: #2d7a3a;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.shopping-categories {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shopping-cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.shopping-cat-btn.open {
+  border-radius: 12px 12px 0 0;
+  background: #4a6a3a;
+  color: #fff;
+}
+
+.shopping-cat-btn.open strong { color: #fff; }
+.shopping-cat-btn.open span { color: #c8e6c9; }
+
+.shopping-cat-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.shopping-cat-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.shopping-cat-info strong {
+  font-size: 15px;
+  color: #333;
+}
+
+.shopping-cat-info span {
+  font-size: 12px;
+  color: #999;
+}
+
+.shopping-cat-arrow {
+  font-size: 12px;
+  color: #2d7a3a;
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+
+.shopping-cat-arrow.open {
+  transform: rotate(90deg);
+  color: #E8F5E9;
+}
+
+.shopping-items {
+  background: #fff;
+  border-radius: 0 0 12px 12px;
+  padding: 4px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+
+.shopping-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.shopping-item:last-child {
+  border-bottom: none;
+}
+
+.shopping-item:active {
+  background: #f9f9f9;
+}
+
+.shopping-checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.shopping-checkbox.checked {
+  background: #2d7a3a;
+  border-color: #2d7a3a;
+}
+
+.shopping-item span {
+  font-size: 15px;
+  color: #333;
+}
+
+.shopping-item-done {
+  text-decoration: line-through;
+  color: #999 !important;
+}
+
+.shopping-clear {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 0 12px 24px;
+  padding: 12px;
+  background: #f0f0f0;
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+  font-family: inherit;
+  text-align: center;
+}

@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import LandingPage from './pages/LandingPage'
-import OnboardingPage from './pages/OnboardingPage'
+// onboarding removed
 import HomePage from './pages/HomePage'
 import MealPlanPage from './pages/MealPlanPage'
 import ScanPage from './pages/ScanPage'
@@ -12,6 +12,9 @@ import WorkoutsPage from './pages/WorkoutsPage'
 import ProgressPage from './pages/ProgressPage'
 import ContentPage from './pages/ContentPage'
 import CalcPage from './pages/CalcPage'
+import ShoppingPage from './pages/ShoppingPage'
+import ExerciseProgramPage from './pages/ExerciseProgramPage'
+import StepsPage from './pages/StepsPage'
 import './App.css'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -21,12 +24,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-function OnboardingGate({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading } = useAuth()
-  if (loading) return <LoadingScreen />
-  if (user && (!profile || !profile.onboarding_completed)) return <Navigate to="/onboarding" replace />
-  return <>{children}</>
-}
+// No onboarding gate — users go straight to dashboard
 
 function AuthRedirect({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -47,27 +45,12 @@ function LoadingScreen() {
 export default function App() {
   return (
     <Routes>
-      <Route
-        path="/welcome"
-        element={
-          <AuthRedirect>
-            <LandingPage />
-          </AuthRedirect>
-        }
-      />
-      <Route
-        path="/onboarding"
-        element={
-          <ProtectedRoute>
-            <OnboardingPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/welcome" element={<AuthRedirect><LandingPage /></AuthRedirect>} />
+      {/* onboarding removed — users go straight to dashboard */}
       <Route
         path="/*"
         element={
           <ProtectedRoute>
-            <OnboardingGate>
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/meal-plan" element={<MealPlanPage />} />
@@ -78,13 +61,15 @@ export default function App() {
                 <Route path="/progress" element={<ProgressPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/calculator" element={<CalcPage />} />
+                <Route path="/steps" element={<StepsPage />} />
                 <Route path="/metaboost" element={<ContentPage />} />
                 <Route path="/rules" element={<ContentPage />} />
                 <Route path="/sleep" element={<ContentPage />} />
-                <Route path="/shopping" element={<ContentPage />} />
+                <Route path="/shopping" element={<ShoppingPage />} />
+                <Route path="/yoga" element={<ExerciseProgramPage />} />
+                <Route path="/fitness" element={<ExerciseProgramPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
-            </OnboardingGate>
           </ProtectedRoute>
         }
       />

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import PageHeader from '../components/common/PageHeader'
 import './MealPlanPage.css'
@@ -29,10 +30,14 @@ const mealTypeLabels: Record<string, string> = {
 const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function MealPlanPage() {
+  const { profile, refreshProfile } = useAuth()
   const [selectedDay, setSelectedDay] = useState(1)
   const [meals, setMeals] = useState<Meal[]>([])
   const [expandedMeal, setExpandedMeal] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Refresh profile to get latest calorie target
+  useEffect(() => { refreshProfile() }, [])
 
   useEffect(() => {
     loadMeals()
@@ -40,26 +45,67 @@ export default function MealPlanPage() {
 
   async function loadMeals() {
     setLoading(true)
-    const { data } = await supabase
-      .from('meal_plans')
-      .select('*')
-      .eq('day_number', selectedDay)
-      .order('sort_order')
-    setMeals(data || [])
+    try {
+      const resp = await fetch(`/api/meals/${selectedDay}`)
+      if (resp.ok) {
+        const data = await resp.json()
+        setMeals(data)
+      } else {
+        setMeals([])
+      }
+    } catch {
+      setMeals([])
+    }
     setLoading(false)
   }
 
-  const totalCals = meals.reduce((sum, m) => sum + m.calories, 0)
+  // Scale meals to match user's calorie target
+  const baseTotalCals = meals.reduce((sum, m) => sum + m.calories, 0)
+  const target = profile?.daily_calorie_target || 0
+  const scale = target > 0 && baseTotalCals > 0 ? target / baseTotalCals : 1
+
+  const scaledMeals = meals.map(m => ({
+    ...m,
+    calories: Math.round(m.calories * scale),
+    protein_g: Math.round(m.protein_g * scale),
+    carbs_g: Math.round(m.carbs_g * scale),
+    fat_g: Math.round(m.fat_g * scale),
+    ingredients: (m.ingredients || []).map((ing: any) => ({
+      ...ing,
+      calories: ing.calories ? Math.round(ing.calories * scale) : ing.calories,
+      protein: ing.protein ? Math.round(ing.protein * scale) : ing.protein,
+      carbs: ing.carbs ? Math.round(ing.carbs * scale) : ing.carbs,
+      fat: ing.fat ? Math.round(ing.fat * scale) : ing.fat,
+    })),
+  }))
+
+  const totalCals = scaledMeals.reduce((sum, m) => sum + m.calories, 0)
 
   return (
     <div className="mealplan-page">
       <PageHeader title="Weekly Meal Plan" color="#2d5a3a" />
 
-      {/* Daily total */}
-      {meals.length > 0 && (
-        <div className="mp-daily-total">
-          <span>Day {selectedDay} Total</span>
-          <strong>{totalCals} calories</strong>
+      {/* Day total calories */}
+      {scaledMeals.length > 0 && (
+        <div className="mp-target-bar">
+          <div className="mp-target-info">
+            <span className="mp-target-label">Day {selectedDay} Total</span>
+            <span className="mp-target-num">{totalCals} cal</span>
+          </div>
+          {profile?.daily_calorie_target && (
+            <div className="mp-target-info">
+              <span className="mp-target-label">Your target</span>
+              <span className="mp-target-num">{profile.daily_calorie_target} cal</span>
+            </div>
+          )}
+          {profile?.daily_calorie_target && (
+            <div className="mp-target-remaining">
+              {totalCals <= profile.daily_calorie_target
+                ? `${profile.daily_calorie_target - totalCals} cal remaining`
+                : `${totalCals - profile.daily_calorie_target} cal over target`
+              }
+            </div>
+          )}
         </div>
       )}
 
@@ -81,14 +127,14 @@ export default function MealPlanPage() {
       <div className="meals-list">
         {loading ? (
           <div className="mp-empty">Loading meals...</div>
-        ) : meals.length === 0 ? (
+        ) : scaledMeals.length === 0 ? (
           <div className="mp-empty">
             <span className="mp-empty-icon">🍽️</span>
             <p>No meals added yet for this day.</p>
             <p className="mp-empty-hint">Meal plans will be added soon!</p>
           </div>
         ) : (
-          meals.map((meal) => (
+          scaledMeals.map((meal) => (
             <div key={meal.id} className="meal-card" onClick={() => setExpandedMeal(expandedMeal === meal.id ? null : meal.id)}>
               <div className="meal-card-header">
                 <div>
