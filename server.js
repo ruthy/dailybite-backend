@@ -222,13 +222,29 @@ app.get("/api/scan-count/:email", async (req, res) => {
   res.json({ used: count || 0, limit, premium: isPremium });
 });
 
-app.post("/api/scan-plate", scanLimiter, requireAuth, async (req, res) => {
+app.post("/api/scan-plate", scanLimiter, async (req, res) => {
   if (!openai) return res.status(503).json({ error: "AI scanning not configured." });
-  const { imageUrl } = req.body;
-  if (!imageUrl) return res.status(400).json({ error: "Image URL is required" });
+  const { imageUrl, imageBase64 } = req.body;
+  if (!imageUrl && !imageBase64) return res.status(400).json({ error: "Image is required" });
+  const imageContent = imageBase64
+    ? { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
+    : { type: "image_url", image_url: { url: imageUrl } };
 
-  // Check scan limit
-  const { data: profile } = await supabase.from("profiles").select("id,premium_until").eq("id", req.user.id).single();
+  // Check scan limit — use email from body or token
+  const email = req.body.email;
+  let userId = null;
+  if (email) {
+    const { data: p } = await supabase.from("profiles").select("id").eq("email", email).single();
+    if (p) userId = p.id;
+  }
+  if (!userId) {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (token) {
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (user) userId = user.id;
+    }
+  }
+  const { data: profile } = userId ? await supabase.from("profiles").select("id,premium_until").eq("id", userId).single() : { data: null };
   if (profile) {
     const isPremium = profile.premium_until && new Date(profile.premium_until) > new Date();
     const today = new Date().toISOString().split("T")[0];
@@ -250,7 +266,7 @@ app.post("/api/scan-plate", scanLimiter, requireAuth, async (req, res) => {
         { role: "system", content: "You are a nutrition analysis assistant. Analyze food photos and return nutritional estimates. Always respond with valid JSON only, no markdown." },
         { role: "user", content: [
           { type: "text", text: 'Identify all food items on this plate. For each item return: name, portion, calories, protein_g, carbs_g, fat_g. Return JSON: {"items": [...]}' },
-          { type: "image_url", image_url: { url: imageUrl } }
+          imageContent
         ]}
       ],
       max_tokens: 1000,
@@ -283,6 +299,21 @@ app.post("/api/send-welcome-email", emailLimiter, async (req, res) => {
 });
 
 // ==========================================
+// Save meal log
+app.post("/api/save-meal", async (req, res) => {
+  const { email, date, food_items, total_calories, total_protein_g, total_carbs_g, total_fat_g, source, meal_type } = req.body;
+  if (!email) return res.status(400).json({ error: "Email required" });
+  const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).single();
+  if (!profile) return res.status(404).json({ error: "User not found" });
+  const { data, error } = await supabase.from("meal_logs").insert({
+    user_id: profile.id, date: date || new Date().toISOString().split("T")[0],
+    food_items: food_items || [], total_calories, total_protein_g, total_carbs_g, total_fat_g,
+    source: source || "manual", meal_type: meal_type || "other"
+  }).select();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ meal: data?.[0] || null });
+});
+
 // PROMO CODES
 const PROMO_CODES = {
   "DAILYBITE2026": { type: "lifetime", description: "Founding team - lifetime free" },

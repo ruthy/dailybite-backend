@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../lib/supabase'
 import PageHeader from '../components/common/PageHeader'
 import './ScanPage.css'
 
@@ -59,22 +58,14 @@ export default function ScanPage() {
         return
       }
 
-      const fileName = `${user!.id}/${Date.now()}.jpg`
-      const { error: uploadError } = await supabase.storage
-        .from('meal-photos')
-        .upload(fileName, decode(photo.base64String), { contentType: 'image/jpeg' })
-
-      if (uploadError) throw uploadError
-
-      const { data: urlData } = await supabase.storage.from('meal-photos').createSignedUrl(fileName, 3600)
-
+      // Send base64 directly to server — no Supabase storage needed
       const response = await fetch('/api/scan-plate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        },
-        body: JSON.stringify({ imageUrl: urlData?.signedUrl })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: photo.base64String,
+          email: user!.email
+        })
       })
 
       if (!response.ok) {
@@ -93,22 +84,26 @@ export default function ScanPage() {
   }
 
   async function handleSave() {
-    if (!results || !user) return
+    if (!results || !user?.email) return
     const today = new Date().toISOString().split('T')[0]
     const totalCal = results.reduce((s, r) => s + r.calories, 0)
     const totalP = results.reduce((s, r) => s + r.protein_g, 0)
     const totalC = results.reduce((s, r) => s + r.carbs_g, 0)
     const totalF = results.reduce((s, r) => s + r.fat_g, 0)
 
-    await supabase.from('meal_logs').insert({
-      user_id: user.id,
-      date: today,
-      food_items: results,
-      total_calories: totalCal,
-      total_protein_g: totalP,
-      total_carbs_g: totalC,
-      total_fat_g: totalF,
-      source: 'scan',
+    await fetch('/api/save-meal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: user.email,
+        date: today,
+        food_items: results,
+        total_calories: totalCal,
+        total_protein_g: totalP,
+        total_carbs_g: totalC,
+        total_fat_g: totalF,
+        source: 'scan',
+      }),
     })
 
     setSaved(true)
@@ -197,11 +192,3 @@ export default function ScanPage() {
   )
 }
 
-function decode(base64: string): Uint8Array {
-  const binaryString = atob(base64)
-  const bytes = new Uint8Array(binaryString.length)
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i)
-  }
-  return bytes
-}
