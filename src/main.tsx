@@ -1,3 +1,4 @@
+import './lib/api' // Auto-prefix /api calls on native devices
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'

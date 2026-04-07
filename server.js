@@ -24,7 +24,7 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: { error: "Too many requests." } }));
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, message: { error: "Too many requests." } }));
 
 // Supabase
 const supabase = createClient(
@@ -254,6 +254,37 @@ app.post("/api/send-welcome-email", emailLimiter, async (req, res) => {
 });
 
 // ==========================================
+// PROMO CODES
+const PROMO_CODES = {
+  "DAILYBITE2026": { type: "lifetime", description: "Founding team - lifetime free" },
+  "FRIENDS100": { type: "30days", description: "Friends & family - 30 days free" },
+  "BETA2026": { type: "90days", description: "Beta tester - 90 days free" },
+  "RUTHY": { type: "lifetime", description: "Owner - lifetime free" },
+};
+
+app.post("/api/redeem-code", async (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ error: "Email and code required" });
+  const promo = PROMO_CODES[code.toUpperCase()];
+  if (!promo) return res.status(400).json({ error: "Invalid promo code" });
+  const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).single();
+  if (!profile) return res.status(404).json({ error: "User not found. Please sign up first." });
+  let premiumUntil = null;
+  if (promo.type === "lifetime") premiumUntil = "2099-12-31";
+  else if (promo.type === "30days") premiumUntil = new Date(Date.now() + 30*24*60*60*1000).toISOString().split("T")[0];
+  else if (promo.type === "90days") premiumUntil = new Date(Date.now() + 90*24*60*60*1000).toISOString().split("T")[0];
+  const { error } = await supabase.from("profiles").update({ premium_until: premiumUntil, promo_code: code.toUpperCase() }).eq("id", profile.id);
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ success: true, type: promo.type, premium_until: premiumUntil, description: promo.description });
+});
+
+app.get("/api/check-premium/:email", async (req, res) => {
+  const { data: profile } = await supabase.from("profiles").select("premium_until,promo_code").eq("email", req.params.email).single();
+  if (!profile) return res.json({ premium: false });
+  const isPremium = profile.premium_until && new Date(profile.premium_until) > new Date();
+  res.json({ premium: isPremium, until: profile.premium_until, code: profile.promo_code });
+});
+
 // STATIC FILES + SPA FALLBACK
 // ==========================================
 app.use(express.static(path.join(__dirname, "dist")));
@@ -269,3 +300,4 @@ app.listen(PORT, () => {
   console.log(`DailyBite API running on port ${PORT}`);
   console.log(`AI scanning: ${openai ? "enabled" : "disabled"}`);
 });
+

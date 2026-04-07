@@ -8,11 +8,51 @@ export default function ProfilePage() {
   const { profile, user, signOut, refreshProfile } = useAuth()
   const [weightInput, setWeightInput] = useState('')
   const [weightHistory, setWeightHistory] = useState<Array<{ date: string; weight_kg: number }>>([])
+  const [promoCode, setPromoCode] = useState('')
+  const [promoStatus, setPromoStatus] = useState('')
+  const [promoClass, setPromoClass] = useState('')
+  const [premiumInfo, setPremiumInfo] = useState<{ premium: boolean; until?: string } | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
-    if (user) loadWeightHistory()
+    if (user) {
+      loadWeightHistory()
+      checkPremium()
+    }
   }, [user])
+
+  async function checkPremium() {
+    if (!user?.email) return
+    try {
+      const resp = await fetch(`/api/check-premium/${encodeURIComponent(user.email)}`)
+      if (resp.ok) setPremiumInfo(await resp.json())
+    } catch {}
+  }
+
+  async function redeemCode() {
+    if (!user?.email || !promoCode) return
+    setPromoStatus('Redeeming...')
+    setPromoClass('saving')
+    try {
+      const resp = await fetch('/api/redeem-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, code: promoCode }),
+      })
+      const data = await resp.json()
+      if (resp.ok) {
+        setPromoStatus(`✓ ${data.description} — Premium until ${new Date(data.premium_until).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}`)
+        setPromoClass('success')
+        checkPremium()
+      } else {
+        setPromoStatus(data.error || 'Invalid code')
+        setPromoClass('error')
+      }
+    } catch {
+      setPromoStatus('Network error')
+      setPromoClass('error')
+    }
+  }
 
   async function loadWeightHistory() {
     const { data } = await supabase
@@ -183,6 +223,35 @@ export default function ProfilePage() {
           </div>
         )
       })()}
+
+      {/* Premium Status */}
+      <div className="profile-section">
+        {premiumInfo?.premium ? (
+          <div className="premium-badge">
+            <span className="premium-badge-icon">⭐</span>
+            <div>
+              <strong>Premium Member</strong>
+              <span>Active until {new Date(premiumInfo.until + 'T00:00:00').toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h3>Redeem Promo Code</h3>
+            <div className="promo-input-row">
+              <input
+                type="text"
+                value={promoCode}
+                onChange={e => { setPromoCode(e.target.value.toUpperCase()); setPromoStatus(''); setPromoClass('') }}
+                placeholder="Enter code"
+              />
+              <button className="promo-btn" onClick={redeemCode}>Redeem</button>
+            </div>
+            {promoStatus && (
+              <p className={`promo-status ${promoClass}`}>{promoStatus}</p>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Actions */}
       <div className="profile-actions">
