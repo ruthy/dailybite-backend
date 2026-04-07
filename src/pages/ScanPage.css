@@ -9,6 +9,17 @@
   margin-left: 12px;
   margin-right: 12px;
 }
+.scan-count-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 12px 12px 0; padding: 10px 14px; background: #3b6b8a; border-radius: 10px;
+}
+.scan-count-text { font-size: 13px; color: #fff; font-weight: 600; }
+.scan-count-num { font-size: 16px; color: #fff; font-weight: 800; }
+
+.scan-limit-msg { text-align: center; }
+.scan-limit-title { font-size: 16px; font-weight: 700; color: #c62828; margin-bottom: 4px; }
+.scan-limit-sub { font-size: 13px; color: #666; }
+
 .scan-page .scan-desc { padding-top: 16px; }
 
 .scan-page h1 {

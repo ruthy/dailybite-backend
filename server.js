@@ -210,10 +210,39 @@ app.get("/api/recipes", async (req, res) => {
   res.json(data || []);
 });
 
+// Check scan count for a user today
+app.get("/api/scan-count/:email", async (req, res) => {
+  const { data: profile } = await supabase.from("profiles").select("id,premium_until").eq("email", req.params.email).single();
+  if (!profile) return res.json({ used: 0, limit: 3, premium: false });
+  const isPremium = profile.premium_until && new Date(profile.premium_until) > new Date();
+  const today = new Date().toISOString().split("T")[0];
+  const { count } = await supabase.from("meal_logs").select("id", { count: "exact" })
+    .eq("user_id", profile.id).eq("date", today).eq("source", "scan");
+  const limit = isPremium ? 10 : 3;
+  res.json({ used: count || 0, limit, premium: isPremium });
+});
+
 app.post("/api/scan-plate", scanLimiter, requireAuth, async (req, res) => {
   if (!openai) return res.status(503).json({ error: "AI scanning not configured." });
   const { imageUrl } = req.body;
   if (!imageUrl) return res.status(400).json({ error: "Image URL is required" });
+
+  // Check scan limit
+  const { data: profile } = await supabase.from("profiles").select("id,premium_until").eq("id", req.user.id).single();
+  if (profile) {
+    const isPremium = profile.premium_until && new Date(profile.premium_until) > new Date();
+    const today = new Date().toISOString().split("T")[0];
+    const { count } = await supabase.from("meal_logs").select("id", { count: "exact" })
+      .eq("user_id", profile.id).eq("date", today).eq("source", "scan");
+    const limit = isPremium ? 10 : 3;
+    if ((count || 0) >= limit) {
+      return res.status(429).json({
+        error: isPremium
+          ? "Daily scan limit reached (10/day). Try again tomorrow."
+          : "Free scan limit reached (3 total). Upgrade to Premium for 10 scans/day."
+      });
+    }
+  }
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
