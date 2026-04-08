@@ -45,12 +45,14 @@ export default function ScanPage() {
       setScanning(true)
       setSaved(false)
 
-      const { Camera } = await import('@capacitor/camera')
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera')
       const photo = await Camera.getPhoto({
-        quality: 80,
+        quality: 50,
         allowEditing: false,
-        resultType: (await import('@capacitor/camera')).CameraResultType.Base64,
-        source: (await import('@capacitor/camera')).CameraSource.Camera,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Prompt,
+        width: 800,
+        height: 800,
       })
 
       if (!photo.base64String) {
@@ -58,23 +60,28 @@ export default function ScanPage() {
         return
       }
 
-      // Send base64 directly to server — no Supabase storage needed
+      // Send base64 directly to server
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 30000)
+
       const response = await fetch('/api/scan-plate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageBase64: photo.base64String,
           email: user!.email
-        })
+        }),
+        signal: controller.signal,
       })
+      clearTimeout(timeout)
 
       if (!response.ok) {
-        const err = await response.json()
-        throw new Error(err.error || 'Scan failed')
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || 'Scan failed. Status: ' + response.status)
       }
 
       const data = await response.json()
-      setResults(data.items)
+      setResults(data.items || [])
       loadScanCount()
     } catch (err: any) {
       setError(err.message || 'Failed to scan. Try again.')
