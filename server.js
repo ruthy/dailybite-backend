@@ -17,7 +17,8 @@ app.use(cors({
     const allowed = [
       "https://dailybite.fit", "https://www.dailybite.fit",
       "https://dailybite-backend-pw2i.onrender.com",
-      "capacitor://localhost", "http://localhost:3000", "http://localhost:5173", "http://localhost:4173",
+      "capacitor://localhost", "https://localhost",
+      "http://localhost:3000", "http://localhost:5173", "http://localhost:4173",
     ];
     if (!origin || allowed.includes(origin)) cb(null, true);
     else cb(new Error("Not allowed by CORS"));
@@ -281,8 +282,11 @@ app.post("/api/scan-plate", scanLimiter, async (req, res) => {
     };
     res.json({ items, total });
   } catch (error) {
-    console.error("Scan error:", error.message);
-    res.status(500).json({ error: "Failed to analyze image." });
+    console.error("Scan error:", error.message, error.status || '', error.code || '');
+    const msg = error.code === 'invalid_image' || (error.message && error.message.includes('image'))
+      ? "Could not process this image. Please try taking a clearer photo."
+      : "Failed to analyze image. Please try again.";
+    res.status(500).json({ error: msg });
   }
 });
 

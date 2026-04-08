@@ -62,7 +62,7 @@ export default function ScanPage() {
 
       // Send base64 directly to server
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 30000)
+      const timeout = setTimeout(() => controller.abort(), 60000)
 
       const response = await fetch('/api/scan-plate', {
         method: 'POST',
@@ -76,11 +76,27 @@ export default function ScanPage() {
       clearTimeout(timeout)
 
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}))
-        throw new Error(err.error || 'Scan failed. Status: ' + response.status)
+        const text = await response.text()
+        let errMsg = 'Scan failed. Status: ' + response.status
+        try {
+          const err = JSON.parse(text)
+          if (err.error) errMsg = err.error
+        } catch {
+          // Response was not JSON (likely HTML from capacitor://localhost fallback)
+          if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+            errMsg = 'Could not reach server. Please check your internet connection.'
+          }
+        }
+        throw new Error(errMsg)
       }
 
-      const data = await response.json()
+      const text = await response.text()
+      let data: any
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error('Server returned invalid response. Please try again.')
+      }
       setResults(data.items || [])
       loadScanCount()
     } catch (err: any) {
